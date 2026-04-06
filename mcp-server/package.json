@@ -1,5 +1,5 @@
 {
-  "name": "@xiaoyibao/dayi-mcp-server",
+  "name": "@xiaoyibao_2025/dayi-mcp-server",
   "version": "0.1.0",
   "description": "MCP server for querying Dayi medical search through a Python core",
   "license": "UNLICENSED",

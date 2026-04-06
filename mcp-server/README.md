@@ -43,10 +43,31 @@ npx @modelcontextprotocol/inspector npx tsx src/index.ts
 - `dayi_query_disease`
 - `dayi_query_symptom`
 
-如需指定 Python，可设置：
+默认运行（安装后可直接执行）：
 
 ```bash
-DAYI_PYTHON_BIN=/path/to/python3
+npm install -g @xiaoyibao_2025/dayi-mcp-server
+dayi-mcp
+```
+
+这时 MCP server 会走项目路径下的 Python Core；若需要自定义：
+
+```bash
+DAYI_PYTHON_BIN=/path/to/python3 dayi-mcp
+```
+
+也可以把它注册到 `.mcp.json` 的配置里，使用默认的 stdio transport：
+
+```json
+{
+  "servers": [
+    {
+      "name": "dayi-mcp-server",
+      "path": "node_modules/@xiaoyibao_2025/dayi-mcp-server/dist/index.js",
+      "transport": "stdio"
+    }
+  ]
+}
 ```
 
 发布前检查：
@@ -56,7 +77,7 @@ cd mcp-server
 npm pack --dry-run
 ```
 
-发布：
+发布（当前 scope 可用，命令中不再指定 OTP）：
 
 ```bash
 cd mcp-server
@@ -65,9 +86,7 @@ npm publish --access public
 ```
 
 说明：
-- 当前本机 `npm whoami` 返回未登录，需要重新 `npm login`
-- 当前包名 `@xiaoyibao/dayi-mcp-server` 在 npm registry 中还不存在
+- 当前 `npm whoami` 是 `xiaoyibao_2025`，你拥有这个 scope 的发布权限
 
 后续要做：
 1. 补充错误码与更细的 tool 描述
-2. 如果你还想使用其他 scope，改成自己可发布的包名即可，例如 `@yourname/dayi-mcp-server`
