@@ -98,7 +98,7 @@ npm publish --access public
   "servers": [
     {
       "name": "dayi-mcp-server",
-      "command": "uv run dayi-mcp",
+      "command": "npx -y dayi-mcp-server",
       "cwd": "/Users/qinxiaoqiang/Downloads/dayi/dayi-search-mcp/mcp-server",
       "transport": "stdio"
     }
@@ -114,7 +114,7 @@ npm publish --access public
 {
   "mcpServers": {
     "dayi-mcp-server": {
-      "command": "uv run dayi-mcp",
+      "command": "npx -y dayi-mcp-server",
       "cwd": "/Users/qinxiaoqiang/Downloads/dayi/dayi-search-mcp/mcp-server",
       "transport": "stdio"
     }
