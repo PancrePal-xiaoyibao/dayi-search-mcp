@@ -14,7 +14,8 @@ const REPO_ROOT = resolve(SERVER_DIR, '..', '..');
 const PYTHONPATH = join(REPO_ROOT, 'src');
 const PYTHON_BIN = process.env.DAYI_PYTHON_BIN ?? 'python3';
 
-type QueryType = 'medical' | 'disease' | 'doctor' | 'symptom';
+const QUERY_TYPES = ['medical', 'disease', 'doctor', 'symptom'] as const;
+type QueryType = (typeof QUERY_TYPES)[number];
 
 async function runDayiQuery(type: QueryType, keyword: string) {
   const tempDir = await mkdtemp(join(tmpdir(), 'dayi-mcp-'));
@@ -79,25 +80,41 @@ const server = new McpServer({
   version: '0.1.0',
 });
 
+async function executeQuery(type: QueryType, keyword: string) {
+  const { result, stdout } = await runDayiQuery(type, keyword);
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: buildTextSummary(result, stdout),
+      },
+    ],
+    structuredContent: result,
+  };
+}
+
+function registerTypedQueryTool(type: QueryType) {
+  server.tool(
+    `dayi_query_${type}`,
+    {
+      keyword: z.string().min(1),
+    },
+    async ({ keyword }) => executeQuery(type, keyword),
+  );
+}
+
 server.tool(
   'dayi_query',
   {
-    type: z.enum(['medical', 'disease', 'doctor', 'symptom']),
+    type: z.enum(QUERY_TYPES),
     keyword: z.string().min(1),
   },
-  async ({ type, keyword }) => {
-    const { result, stdout } = await runDayiQuery(type, keyword);
-    return {
-      content: [
-        {
-          type: 'text',
-          text: buildTextSummary(result, stdout),
-        },
-      ],
-      structuredContent: result,
-    };
-  },
+  async ({ type, keyword }) => executeQuery(type, keyword),
 );
+
+for (const type of QUERY_TYPES) {
+  registerTypedQueryTool(type);
+}
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
