@@ -1,15 +1,44 @@
 {
   "name": "@dayi/mcp-server",
   "version": "0.1.0",
-  "private": true,
-  "description": "MCP server for Dayi search core",
+  "description": "MCP server for querying Dayi medical search through a Python core",
+  "license": "UNLICENSED",
   "type": "module",
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "README.md",
+    "package.json"
+  ],
   "bin": {
     "dayi-mcp": "dist/index.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PancrePal-xiaoyibao/dayi-search-mcp.git",
+    "directory": "mcp-server"
+  },
+  "bugs": {
+    "url": "https://github.com/PancrePal-xiaoyibao/dayi-search-mcp/issues"
+  },
+  "homepage": "https://github.com/PancrePal-xiaoyibao/dayi-search-mcp/tree/main/mcp-server",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "dayi",
+    "medical",
+    "search"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.0",

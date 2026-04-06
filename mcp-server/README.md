@@ -22,6 +22,13 @@ npm install
 npm run dev
 ```
 
+构建：
+
+```bash
+cd mcp-server
+npm run build
+```
+
 使用 Inspector 调试：
 
 ```bash
@@ -42,6 +49,25 @@ npx @modelcontextprotocol/inspector npx tsx src/index.ts
 DAYI_PYTHON_BIN=/path/to/python3
 ```
 
+发布前检查：
+
+```bash
+cd mcp-server
+npm pack --dry-run
+```
+
+发布：
+
+```bash
+cd mcp-server
+npm login
+npm publish --access public
+```
+
+说明：
+- 当前本机 `npm whoami` 返回未登录，需要重新 `npm login`
+- 当前包名 `@dayi/mcp-server` 在 npm registry 中还不存在
+
 后续要做：
 1. 补充错误码与更细的 tool 描述
-2. 完成 npm 发布配置
+2. 如果 `@dayi` scope 不可用，改成你实际可发布的 scope 或包名
