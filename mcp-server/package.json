@@ -1,12 +1,13 @@
 {
   "name": "@xiaoyibao_2025/dayi-mcp-server",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "MCP server for querying Dayi medical search through a Python core",
   "license": "UNLICENSED",
   "type": "module",
   "main": "dist/index.js",
   "files": [
     "dist",
+    "python",
     "README.md",
     "package.json"
   ],
@@ -36,9 +37,10 @@
     "access": "public"
   },
   "scripts": {
+    "sync:python": "node scripts/sync-python-core.mjs",
     "build": "tsc -p tsconfig.json",
     "dev": "tsx src/index.ts",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run sync:python && npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.0",

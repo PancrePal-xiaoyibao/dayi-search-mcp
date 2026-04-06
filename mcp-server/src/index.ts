@@ -7,13 +7,19 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { existsSync } from 'node:fs';
 import { z } from 'zod';
 
 const execFileAsync = promisify(execFile);
 const SERVER_DIR = resolve(fileURLToPath(new URL('.', import.meta.url)));
-const REPO_ROOT = resolve(SERVER_DIR, '..', '..');
-const PYTHONPATH = join(REPO_ROOT, 'src');
+const PACKAGE_ROOT = resolve(SERVER_DIR, '..');
+const BUNDLED_PYTHONPATH = join(PACKAGE_ROOT, 'python');
+const REPO_PYTHONPATH = join(PACKAGE_ROOT, '..', 'src');
+const hasBundledPython = existsSync(join(BUNDLED_PYTHONPATH, 'dayi_core'));
 const PYTHON_BIN = process.env.DAYI_PYTHON_BIN ?? 'python3';
+const DEFAULT_PYTHONPATH = hasBundledPython ? BUNDLED_PYTHONPATH : REPO_PYTHONPATH;
+const DEFAULT_PYTHON_CWD = hasBundledPython ? PACKAGE_ROOT : resolve(PACKAGE_ROOT, '..');
+const PYTHON_CWD = process.env.DAYI_PYTHON_CWD ?? DEFAULT_PYTHON_CWD;
 
 const QUERY_TYPES = ['medical', 'disease', 'doctor', 'symptom'] as const;
 type QueryType = (typeof QUERY_TYPES)[number];
@@ -35,12 +41,16 @@ async function runDayiQuery(type: QueryType, keyword: string) {
       jsonPath,
     ];
 
+    const env = { ...process.env } as NodeJS.ProcessEnv;
+    if (process.env.DAYI_PYTHONPATH?.trim()) {
+      env.PYTHONPATH = process.env.DAYI_PYTHONPATH;
+    } else if (!process.env.PYTHONPATH?.trim()) {
+      env.PYTHONPATH = DEFAULT_PYTHONPATH;
+    }
+
     const { stdout, stderr } = await execFileAsync(PYTHON_BIN, args, {
-      cwd: REPO_ROOT,
-      env: {
-        ...process.env,
-        PYTHONPATH,
-      },
+      cwd: PYTHON_CWD,
+      env,
       maxBuffer: 1024 * 1024 * 4,
     });
 

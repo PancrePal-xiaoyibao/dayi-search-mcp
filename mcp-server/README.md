@@ -50,7 +50,8 @@ npm install -g @xiaoyibao_2025/dayi-mcp-server
 dayi-mcp
 ```
 
-这时 MCP server 会走项目路径下的 Python Core；若需要自定义：
+发布包内已包含 Python Core（`python/dayi_core`），默认不需要额外设置 `PYTHONPATH`。
+若需要自定义 Python 可执行文件：
 
 ```bash
 DAYI_PYTHON_BIN=/path/to/python3 dayi-mcp
@@ -98,7 +99,8 @@ npm publish --access public
   "servers": [
     {
       "name": "dayi-mcp-server",
-      "command": "npx -y dayi-mcp-server",
+      "command": "npx",
+      "args": ["-y", "@xiaoyibao_2025/dayi-mcp-server"],
       "cwd": "/Users/qinxiaoqiang/Downloads/dayi/dayi-search-mcp/mcp-server",
       "transport": "stdio"
     }
@@ -114,7 +116,8 @@ npm publish --access public
 {
   "mcpServers": {
     "dayi-mcp-server": {
-      "command": "npx -y dayi-mcp-server",
+      "command": "npx",
+      "args": ["-y", "@xiaoyibao_2025/dayi-mcp-server"],
       "cwd": "/Users/qinxiaoqiang/Downloads/dayi/dayi-search-mcp/mcp-server",
       "transport": "stdio"
     }
