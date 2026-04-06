@@ -1,0 +1,22 @@
+{
+  "name": "@dayi/mcp-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MCP server for Dayi search core",
+  "type": "module",
+  "bin": {
+    "dayi-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}
