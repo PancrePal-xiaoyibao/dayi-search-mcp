@@ -107,3 +107,17 @@ npm publish --access public
 ```
 
 这样客户端会自动通过 `tools/list` 识别 `dayi_query` 等能力，不需要手动配置 `tools` 节点。
+
+按照你给的格式，可以再补一个 `mcpServers` 节点的示例：
+
+```json
+{
+  "mcpServers": {
+    "dayi-mcp-server": {
+      "command": "uv run dayi-mcp",
+      "cwd": "/Users/qinxiaoqiang/Downloads/dayi/dayi-search-mcp/mcp-server",
+      "transport": "stdio"
+    }
+  }
+}
+```
