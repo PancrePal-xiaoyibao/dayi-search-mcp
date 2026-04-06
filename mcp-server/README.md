@@ -90,3 +90,20 @@ npm publish --access public
 
 后续要做：
 1. 补充错误码与更细的 tool 描述
+2. （可选）提供精简版 `.mcp.json` 供 Cherry/UV 等客户端直接导入，内容只要保留 server 启动即可，示例参考：
+
+```json
+{
+  "version": "1.0.0",
+  "servers": [
+    {
+      "name": "dayi-mcp-server",
+      "command": "uv run dayi-mcp",
+      "cwd": "/Users/qinxiaoqiang/Downloads/dayi/dayi-search-mcp/mcp-server",
+      "transport": "stdio"
+    }
+  ]
+}
+```
+
+这样客户端会自动通过 `tools/list` 识别 `dayi_query` 等能力，不需要手动配置 `tools` 节点。
