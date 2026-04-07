@@ -1,0 +1,3 @@
+display_name: Dayi MCP 医药检索
+short_description: 通过 Dayi MCP 查询药品/医生/疾病/症状并输出结构化结果
+default_prompt: 使用 dayi_query_auto 或 dayi_query 完成医学关键词检索，优先返回 structuredContent，并在需要时设置 save_path 落盘 JSON。

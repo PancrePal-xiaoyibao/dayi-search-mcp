@@ -112,3 +112,11 @@ npm install
 npm run sync:python
 npm run build
 ```
+
+## Skills
+
+已新增项目内技能：
+
+- `skills/dayi-mcp-query/SKILL.md`
+
+用途：在支持 Skill 机制的客户端中，自动触发 Dayi MCP 查询流程（药品/疾病/医生/症状、落盘 JSON、RAG 入库预处理）。
