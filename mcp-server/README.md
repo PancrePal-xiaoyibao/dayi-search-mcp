@@ -42,6 +42,9 @@ npx @modelcontextprotocol/inspector npx tsx src/index.ts
 
 说明：当类型为 `medical` 时，`content` 会返回更完整的字段文本（overview/sections/attributes），`structuredContent` 仍保留完整 JSON。
 并且 `structuredContent.raw` 会包含原始 `detail_html` / `nuxt_script` / `search_payload`，可直接用于后续 RAG 入库。
+其中 `record.sections` 会重点输出：
+- 药品详情：`成分`、`性状`、`适应症`、`用法用量`、`规格`、`贮藏方法`、`有效期`、`执行标准`
+- 注意事项：`不良反应`、`禁忌`、`药物相互作用`、`注意事项`
 
 工具参数支持可选 `save_path`，可将完整结构化结果直接落盘为本地 `.json` 文件。
 
