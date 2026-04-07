@@ -38,10 +38,14 @@ npx @modelcontextprotocol/inspector npx tsx src/index.ts
 
 当前工具：
 - `dayi_query`
-- `dayi_query_medical`
-- `dayi_query_doctor`
-- `dayi_query_disease`
-- `dayi_query_symptom`
+- `dayi_query_auto`（推荐，自动判定 medical/disease/doctor/symptom）
+
+默认不暴露分类型工具，避免客户端一次性并发调用 4 个工具。
+如需开启分类型工具（`dayi_query_medical`/`dayi_query_doctor`/`dayi_query_disease`/`dayi_query_symptom`），可设置：
+
+```bash
+DAYI_EXPOSE_TYPED_TOOLS=1 npx -y @xiaoyibao_2025/dayi-mcp-server
+```
 
 默认运行（安装后可直接执行）：
 

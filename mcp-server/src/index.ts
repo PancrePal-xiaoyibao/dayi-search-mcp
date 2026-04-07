@@ -23,6 +23,15 @@ const PYTHON_CWD = process.env.DAYI_PYTHON_CWD ?? DEFAULT_PYTHON_CWD;
 
 const QUERY_TYPES = ['medical', 'disease', 'doctor', 'symptom'] as const;
 type QueryType = (typeof QUERY_TYPES)[number];
+const EXPOSE_TYPED_TOOLS = process.env.DAYI_EXPOSE_TYPED_TOOLS === '1';
+
+function inferQueryType(input: string): QueryType {
+  const text = input.toLowerCase();
+  if (/(医生|主任|副主任|主治|医师|出诊|门诊|专家|doctor)/i.test(text)) return 'doctor';
+  if (/(症状|疼痛|发热|咳嗽|腹痛|symptom)/i.test(text)) return 'symptom';
+  if (/(疾病|癌|炎|综合征|病|disease)/i.test(text)) return 'disease';
+  return 'medical';
+}
 
 async function runDayiQuery(type: QueryType, keyword: string) {
   const tempDir = await mkdtemp(join(tmpdir(), 'dayi-mcp-'));
@@ -123,8 +132,31 @@ server.tool(
   async ({ type, keyword }) => executeQuery(type, keyword),
 );
 
-for (const type of QUERY_TYPES) {
-  registerTypedQueryTool(type);
+server.tool(
+  'dayi_query_auto',
+  {
+    keyword: z.string().min(1),
+    type_hint: z.enum(QUERY_TYPES).optional(),
+  },
+  async ({ keyword, type_hint }) => {
+    const decidedType = type_hint ?? inferQueryType(keyword);
+    const payload = await executeQuery(decidedType, keyword);
+    return {
+      ...payload,
+      content: [
+        {
+          type: 'text' as const,
+          text: `自动判定类型: ${decidedType}\n${payload.content[0]?.text ?? ''}`.trim(),
+        },
+      ],
+    };
+  },
+);
+
+if (EXPOSE_TYPED_TOOLS) {
+  for (const type of QUERY_TYPES) {
+    registerTypedQueryTool(type);
+  }
 }
 
 const transport = new StdioServerTransport();
