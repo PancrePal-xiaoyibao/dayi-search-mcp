@@ -2,7 +2,7 @@ from typing import Protocol
 
 from dayi_core.core.models import build_base_result
 from dayi_core.parsers.html_fields import extract_intro, extract_item_fields, extract_title
-from dayi_core.parsers.nuxt_state import extract_detail_api_path
+from dayi_core.parsers.nuxt_state import extract_detail_api_path, extract_nuxt_script
 
 
 class DetailProvider(Protocol):
@@ -30,4 +30,9 @@ class GenericDetailProvider:
         result["record"]["title"] = title
         result["record"]["overview"] = {"introduction": intro}
         result["record"]["attributes"] = fields
+        result["raw"]["detail_html"] = html
+        try:
+            result["raw"]["nuxt_script"] = extract_nuxt_script(html)
+        except Exception:
+            result["raw"]["nuxt_script"] = None
         return result

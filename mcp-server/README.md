@@ -41,6 +41,9 @@ npx @modelcontextprotocol/inspector npx tsx src/index.ts
 - `dayi_query_auto`（推荐，自动判定 medical/disease/doctor/symptom）
 
 说明：当类型为 `medical` 时，`content` 会返回更完整的字段文本（overview/sections/attributes），`structuredContent` 仍保留完整 JSON。
+并且 `structuredContent.raw` 会包含原始 `detail_html` / `nuxt_script` / `search_payload`，可直接用于后续 RAG 入库。
+
+工具参数支持可选 `save_path`，可将完整结构化结果直接落盘为本地 `.json` 文件。
 
 默认不暴露分类型工具，避免客户端一次性并发调用 4 个工具。
 如需开启分类型工具（`dayi_query_medical`/`dayi_query_doctor`/`dayi_query_disease`/`dayi_query_symptom`），可设置：

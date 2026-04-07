@@ -37,7 +37,10 @@ def build_base_result(*, keyword: str, query_type: str, detail_url: str, detail_
             "parser_version": "v1",
         },
         "raw": {
+            "detail_html": None,
+            "nuxt_script": None,
             "nuxt": None,
             "response_data": None,
+            "search_payload": None,
         },
     }

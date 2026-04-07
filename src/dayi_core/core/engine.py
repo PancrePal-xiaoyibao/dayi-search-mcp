@@ -57,4 +57,5 @@ def query_by_keyword(*, keyword: str, query_type: str) -> dict:
     result["search"]["selected_id"] = candidate["id"]
     result["search"]["selected_name"] = candidate["title"]
     result["search"]["candidates"] = payload.get("list", [])
+    result["raw"]["search_payload"] = payload
     return result

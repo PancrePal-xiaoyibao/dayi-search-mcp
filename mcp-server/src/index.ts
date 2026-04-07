@@ -5,9 +5,10 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { existsSync } from 'node:fs';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { z } from 'zod';
 
 const execFileAsync = promisify(execFile);
@@ -132,9 +133,15 @@ const server = new McpServer({
   version: '0.1.0',
 });
 
-async function executeQuery(type: QueryType, keyword: string) {
+async function executeQuery(type: QueryType, keyword: string, savePath?: string) {
   const { result, stdout } = await runDayiQuery(type, keyword);
   const text = type === 'medical' ? buildMedicalFullText(result, stdout) : buildTextSummary(result, stdout);
+  if (savePath?.trim()) {
+    const path = savePath.trim();
+    const dir = dirname(resolve(path));
+    await mkdir(dir, { recursive: true });
+    await writeFile(path, JSON.stringify(result, null, 2), 'utf-8');
+  }
   return {
     content: [
       {
@@ -151,8 +158,9 @@ function registerTypedQueryTool(type: QueryType) {
     `dayi_query_${type}`,
     {
       keyword: z.string().min(1),
+      save_path: z.string().min(1).optional(),
     },
-    async ({ keyword }) => executeQuery(type, keyword),
+    async ({ keyword, save_path }) => executeQuery(type, keyword, save_path),
   );
 }
 
@@ -161,8 +169,9 @@ server.tool(
   {
     type: z.enum(QUERY_TYPES),
     keyword: z.string().min(1),
+    save_path: z.string().min(1).optional(),
   },
-  async ({ type, keyword }) => executeQuery(type, keyword),
+  async ({ type, keyword, save_path }) => executeQuery(type, keyword, save_path),
 );
 
 server.tool(
@@ -170,10 +179,11 @@ server.tool(
   {
     keyword: z.string().min(1),
     type_hint: z.enum(QUERY_TYPES).optional(),
+    save_path: z.string().min(1).optional(),
   },
-  async ({ keyword, type_hint }) => {
+  async ({ keyword, type_hint, save_path }) => {
     const decidedType = type_hint ?? inferQueryType(keyword);
-    const payload = await executeQuery(decidedType, keyword);
+    const payload = await executeQuery(decidedType, keyword, save_path);
     return {
       ...payload,
       content: [
