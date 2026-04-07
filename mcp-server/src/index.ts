@@ -95,6 +95,38 @@ function buildTextSummary(result: any, stdout: string) {
     .join('\n');
 }
 
+function flattenEntries(obj: unknown, prefix = ''): Array<{ key: string; value: string }> {
+  if (obj == null) return [];
+  if (typeof obj !== 'object') return prefix ? [{ key: prefix, value: String(obj) }] : [];
+  const out: Array<{ key: string; value: string }> = [];
+  for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+    const nextKey = prefix ? `${prefix}.${k}` : k;
+    if (v == null || v === '') continue;
+    if (typeof v === 'object' && !Array.isArray(v)) {
+      out.push(...flattenEntries(v, nextKey));
+    } else if (Array.isArray(v)) {
+      if (v.length) out.push({ key: nextKey, value: v.map(String).join(' | ') });
+    } else {
+      out.push({ key: nextKey, value: String(v) });
+    }
+  }
+  return out;
+}
+
+function buildMedicalFullText(result: any, stdout: string) {
+  const header = buildTextSummary(result, stdout);
+  const record = result?.record ?? {};
+  const entries = flattenEntries({
+    overview: record?.overview ?? {},
+    sections: record?.sections ?? {},
+    attributes: record?.attributes ?? {},
+  });
+  const body = entries.length
+    ? entries.map((x) => `${x.key}: ${x.value}`).join('\n')
+    : JSON.stringify(result, null, 2);
+  return `${header}\n\n完整提取内容:\n${body}`.trim();
+}
+
 const server = new McpServer({
   name: 'dayi-mcp-server',
   version: '0.1.0',
@@ -102,11 +134,12 @@ const server = new McpServer({
 
 async function executeQuery(type: QueryType, keyword: string) {
   const { result, stdout } = await runDayiQuery(type, keyword);
+  const text = type === 'medical' ? buildMedicalFullText(result, stdout) : buildTextSummary(result, stdout);
   return {
     content: [
       {
         type: 'text' as const,
-        text: buildTextSummary(result, stdout),
+        text,
       },
     ],
     structuredContent: result,
