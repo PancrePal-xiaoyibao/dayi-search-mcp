@@ -3,6 +3,9 @@
 基于中国医药信息查询平台（Dayi）的检索与提取项目。  
 当前已形成首个正式可用版本：**`@xiaoyibao_2025/dayi-mcp-server@0.1.7`**。
 
+**modelscope**
+https://modelscope.cn/mcp/servers/caiql2002/dayi-search-mcp 
+
 ## 项目组成
 
 1. **Python Core**（`src/dayi_core`）
