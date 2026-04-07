@@ -4,9 +4,8 @@
 
 当前状态：
 - 已创建 TypeScript 目录结构
-- 已注册 `dayi_query` 工具
-- 已注册 `dayi_query_medical` / `dayi_query_doctor` / `dayi_query_disease` / `dayi_query_symptom`
-- 已桥接本地 Python Core CLI
+- 已注册 `dayi_query` 与 `dayi_query_auto`（默认推荐）
+- 已桥接 Python Core（包内已内置 `python/dayi_core`）
 - 返回 `content + structuredContent`
 
 运行前提：
@@ -46,8 +45,14 @@ npx @modelcontextprotocol/inspector npx tsx src/index.ts
 - 药品详情：`成分`、`性状`、`适应症`、`用法用量`、`规格`、`贮藏方法`、`有效期`、`执行标准`
 - 注意事项：`不良反应`、`禁忌`、`药物相互作用`、`注意事项`
 
-工具参数支持可选 `save_path`，可将完整结构化结果直接落盘为本地 `.json` 文件。
-若不传 `save_path`，默认会落盘到 `/tmp`，文件名格式：`标题_YYYYMMDD.json`。
+工具参数支持可选 `save_path`，可将完整结构化结果落盘为本地 `.json` 文件。
+若不传 `save_path`，默认会落盘到 `/tmp`，文件名格式：`标题_YYYYMMDD.json`，并在结果里返回：
+- `structuredContent.saved_path`
+
+关于 `/tmp`：
+- Linux/macOS 通常可直接用 `/tmp`
+- macOS 实际路径常映射到 `/private/tmp`
+- 建议以 `structuredContent.saved_path` 为准
 
 默认不暴露分类型工具，避免客户端一次性并发调用 4 个工具。
 如需开启分类型工具（`dayi_query_medical`/`dayi_query_doctor`/`dayi_query_disease`/`dayi_query_symptom`），可设置：
@@ -91,7 +96,7 @@ cd mcp-server
 npm pack --dry-run
 ```
 
-发布（当前 scope 可用，命令中不再指定 OTP）：
+发布（当前 scope 可用）：
 
 ```bash
 cd mcp-server
@@ -104,7 +109,7 @@ npm publish --access public
 
 后续要做：
 1. 补充错误码与更细的 tool 描述
-2. （可选）提供精简版 `.mcp.json` 供 Cherry/UV 等客户端直接导入，内容只要保留 server 启动即可，示例参考：
+2. （可选）提供精简版 `.mcp.json` 供 Cherry/UV 等客户端直接导入，内容只要保留 server 启动即可，示例参考（建议锁版本）：
 
 ```json
 {
@@ -113,7 +118,7 @@ npm publish --access public
     {
       "name": "dayi-mcp-server",
       "command": "npx",
-      "args": ["-y", "@xiaoyibao_2025/dayi-mcp-server"],
+      "args": ["-y", "@xiaoyibao_2025/dayi-mcp-server@0.1.6"],
       "cwd": "/Users/qinxiaoqiang/Downloads/dayi/dayi-search-mcp/mcp-server",
       "transport": "stdio"
     }
@@ -130,7 +135,7 @@ npm publish --access public
   "mcpServers": {
     "dayi-mcp-server": {
       "command": "npx",
-      "args": ["-y", "@xiaoyibao_2025/dayi-mcp-server"],
+      "args": ["-y", "@xiaoyibao_2025/dayi-mcp-server@0.1.6"],
       "cwd": "/Users/qinxiaoqiang/Downloads/dayi/dayi-search-mcp/mcp-server",
       "transport": "stdio"
     }
