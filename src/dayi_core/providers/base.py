@@ -1,7 +1,7 @@
 from typing import Protocol
 
 from dayi_core.core.models import build_base_result
-from dayi_core.parsers.html_fields import extract_intro, extract_item_fields, extract_title
+from dayi_core.parsers.html_fields import extract_intro, extract_item_fields, extract_long_item_fields, extract_title
 from dayi_core.parsers.nuxt_state import extract_detail_api_path, extract_nuxt_script
 
 
@@ -26,6 +26,8 @@ class GenericDetailProvider:
         title = extract_title(html, keyword)
         intro = extract_intro(html)
         fields = extract_item_fields(html)
+        long_fields = extract_long_item_fields(html)
+        fields.update({k: v for k, v in long_fields.items() if v})
         result["search"]["selected_name"] = title
         result["record"]["title"] = title
         result["record"]["overview"] = {"introduction": intro}

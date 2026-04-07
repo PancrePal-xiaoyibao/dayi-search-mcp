@@ -59,3 +59,19 @@ def test_medical_provider_maps_detail_and_notice_sections():
     assert detail["执行标准"] == "国药标准"
     assert notice["不良反应"] == "恶心"
     assert notice["药物相互作用"] == "避免联用药X"
+
+
+def test_medical_provider_fixture_has_non_empty_notice_fields():
+    html = Path("tests/fixtures/medical_detail_sample.html").read_text(encoding="utf-8")
+    provider = MedicalDetailProvider()
+    result = provider.parse_detail_html(
+        detail_url="https://m.dayi.org.cn/drug/1156140",
+        html=html,
+        keyword="替吉奥",
+    )
+    detail = result["record"]["sections"]["药品详情"]
+    notice = result["record"]["sections"]["注意事项"]
+    assert detail["成分"]
+    assert detail["用法用量"]
+    assert notice["不良反应"]
+    assert notice["禁忌"]

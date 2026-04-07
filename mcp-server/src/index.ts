@@ -26,6 +26,32 @@ const QUERY_TYPES = ['medical', 'disease', 'doctor', 'symptom'] as const;
 type QueryType = (typeof QUERY_TYPES)[number];
 const EXPOSE_TYPED_TOOLS = process.env.DAYI_EXPOSE_TYPED_TOOLS === '1';
 
+function currentDateYmd() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}${m}${day}`;
+}
+
+function safeFilename(input: string) {
+  return (input || 'query')
+    .replace(/[\\/:*?"<>|]/g, '_')
+    .replace(/\s+/g, '')
+    .slice(0, 80);
+}
+
+function resolveOutputPath(savePath: string | undefined, result: any, keyword: string) {
+  const title = (result?.record?.title || result?.search?.selected_name || keyword || 'query').trim();
+  const filename = `${safeFilename(title)}_${currentDateYmd()}.json`;
+  if (!savePath?.trim()) return join('/tmp', filename);
+  const raw = savePath.trim();
+  if (raw.endsWith('/') || raw.endsWith('\\') || !raw.toLowerCase().endsWith('.json')) {
+    return join(raw, filename);
+  }
+  return raw;
+}
+
 function inferQueryType(input: string): QueryType {
   const text = input.toLowerCase();
   if (/(医生|主任|副主任|主治|医师|出诊|门诊|专家|doctor)/i.test(text)) return 'doctor';
@@ -135,13 +161,13 @@ const server = new McpServer({
 
 async function executeQuery(type: QueryType, keyword: string, savePath?: string) {
   const { result, stdout } = await runDayiQuery(type, keyword);
-  const text = type === 'medical' ? buildMedicalFullText(result, stdout) : buildTextSummary(result, stdout);
-  if (savePath?.trim()) {
-    const path = savePath.trim();
-    const dir = dirname(resolve(path));
-    await mkdir(dir, { recursive: true });
-    await writeFile(path, JSON.stringify(result, null, 2), 'utf-8');
-  }
+  const path = resolveOutputPath(savePath, result, keyword);
+  const dir = dirname(resolve(path));
+  await mkdir(dir, { recursive: true });
+  await writeFile(path, JSON.stringify(result, null, 2), 'utf-8');
+  result.saved_path = path;
+  const baseText = type === 'medical' ? buildMedicalFullText(result, stdout) : buildTextSummary(result, stdout);
+  const text = `${baseText}\n保存文件: ${path}`;
   return {
     content: [
       {

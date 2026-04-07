@@ -47,6 +47,7 @@ npx @modelcontextprotocol/inspector npx tsx src/index.ts
 - 注意事项：`不良反应`、`禁忌`、`药物相互作用`、`注意事项`
 
 工具参数支持可选 `save_path`，可将完整结构化结果直接落盘为本地 `.json` 文件。
+若不传 `save_path`，默认会落盘到 `/tmp`，文件名格式：`标题_YYYYMMDD.json`。
 
 默认不暴露分类型工具，避免客户端一次性并发调用 4 个工具。
 如需开启分类型工具（`dayi_query_medical`/`dayi_query_doctor`/`dayi_query_disease`/`dayi_query_symptom`），可设置：
