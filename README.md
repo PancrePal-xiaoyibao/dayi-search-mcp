@@ -1,107 +1,114 @@
 # dayi-search-mcp
 
-基于中国医药信息查询平台（Dayi）的检索与提取项目。
+基于中国医药信息查询平台（Dayi）的检索与提取项目。  
+当前已形成首个正式可用版本：**`@xiaoyibao_2025/dayi-mcp-server@0.1.7`**。
 
-当前仓库已实现一个 **Python Core**，支持：
-- 药品 `medical`
-- 疾病 `disease`
-- 医生 `doctor`
-- 症状 `symptom`
+## 项目组成
 
-当前能力：
-- 真实搜索接口：`https://server.dayi.org.cn/api/search`
-- 详情页抓取：`https://m.dayi.org.cn/...`
-- 详情解析优先使用：`window.__NUXT__`
-- 命令行入口：`detail` / `query`
+1. **Python Core**（`src/dayi_core`）
+   - 负责检索、详情提取、结构化输出
+   - 支持类型：`medical` / `disease` / `doctor` / `symptom`
+2. **MCP Server**（`mcp-server`）
+   - Node/TypeScript 实现
+   - 已打包内置 Python Core（发布包内 `python/dayi_core`）
 
----
-
-## 安装与开发
-
-建议使用 Python 3.11+。
-
-当前开发态运行方式：
+## Python Core 快速使用
 
 ```bash
-PYTHONPATH=src python3 -m dayi_core.cli.main query --type medical --keyword 替吉奥
+PYTHONPATH=src python3 -m dayi_core.cli.main query --type medical --keyword 替吉奥 --json /tmp/替吉奥.json
 ```
 
-也可以运行详情模式：
+## MCP 工具能力（0.1.7）
+
+- `dayi_query`：指定 type + keyword 查询
+- `dayi_query_auto`：自动判定类型
+- medical 输出增强：
+  - `record.sections.药品详情`：成分/性状/适应症/用法用量/规格/贮藏方法/有效期/执行标准
+  - `record.sections.注意事项`：不良反应/禁忌/药物相互作用/注意事项
+- 返回 `structuredContent.raw` 原始证据：
+  - `detail_html` / `nuxt_script` / `search_payload`
+- 支持落盘：
+  - `save_path` 可选
+  - 不传时默认落盘 `/tmp/标题_YYYYMMDD.json`
+  - 返回 `structuredContent.saved_path`
+
+## 客户端接入指引
+
+### 1) Cherry Studio
+
+使用 `mcpServers` 配置（推荐锁版本）：
+
+```json
+{
+  "mcpServers": {
+    "dayi-mcp-server": {
+      "command": "npx",
+      "args": ["-y", "@xiaoyibao_2025/dayi-mcp-server@0.1.7"],
+      "transport": "stdio"
+    }
+  }
+}
+```
+
+### 2) FastGPT
+
+在 MCP/工具接入里新增 stdio server，命令填：
 
 ```bash
-PYTHONPATH=src python3 -m dayi_core.cli.main detail --type medical --url https://m.dayi.org.cn/drug/1156140 --keyword 替吉奥
+npx -y @xiaoyibao_2025/dayi-mcp-server@0.1.7
 ```
 
----
+transport 选 `stdio`，工具自动通过 `tools/list` 发现。
 
-## 支持的类型
+### 3) OpenClaw
 
-- `medical`
-- `disease`
-- `doctor`
-- `symptom`
+在插件或运行时的 MCP 配置中添加一个 stdio server：
 
----
+```json
+{
+  "mcpServers": {
+    "dayi-mcp-server": {
+      "command": "npx",
+      "args": ["-y", "@xiaoyibao_2025/dayi-mcp-server@0.1.7"],
+      "transport": "stdio"
+    }
+  }
+}
+```
 
-## 示例
+### 4) Claude Code
 
-### 1. 药品查询
+在项目的 MCP 配置文件中注册：
+
+```json
+{
+  "mcpServers": {
+    "dayi-mcp-server": {
+      "command": "npx",
+      "args": ["-y", "@xiaoyibao_2025/dayi-mcp-server@0.1.7"],
+      "transport": "stdio"
+    }
+  }
+}
+```
+
+### 5) Codex / Codex CLI
+
+使用同样的 stdio MCP 配置方式，命令保持一致：
 
 ```bash
-PYTHONPATH=src python3 -m dayi_core.cli.main query --type medical --keyword 替吉奥 --json /tmp/medical.json
+npx -y @xiaoyibao_2025/dayi-mcp-server@0.1.7
 ```
 
-### 2. 医生查询
+## 开发与测试
 
 ```bash
-PYTHONPATH=src python3 -m dayi_core.cli.main query --type doctor --keyword 傅德良 --json /tmp/doctor.json
+# Python tests
+pytest tests -q
+
+# MCP build
+cd mcp-server
+npm install
+npm run sync:python
+npm run build
 ```
-
-### 3. 疾病查询
-
-```bash
-PYTHONPATH=src python3 -m dayi_core.cli.main query --type disease --keyword 胰腺癌 --json /tmp/disease.json
-```
-
----
-
-## 当前抓取策略
-
-- search：优先 API
-- detail：优先 `window.__NUXT__`
-- DOM/HTML 标签解析：作为兜底
-
----
-
-## 测试
-
-```bash
-pytest tests/test_cli_query.py tests/test_search_api.py tests/test_multi_providers.py tests/test_cli.py tests/test_nuxt_state_parser.py tests/test_medical_provider.py tests/test_engine_detail.py -q
-```
-
----
-
-## 目录说明
-
-```text
-src/dayi_core/
-  cli/            # CLI 入口
-  core/           # engine / fetcher / models
-  parsers/        # Nuxt / HTML 字段解析
-  providers/      # medical / disease / doctor / symptom
-  exporters/      # 控制台与 JSON 输出
-
-tests/
-  fixtures/       # HTML / JSON fixture
-```
-
----
-
-## MCP 规划
-
-当前仓库已初始化 `mcp-server/` 骨架目录，用于后续拆分 Node/TypeScript MCP 服务。
-
-后续 MCP 将负责：
-- 暴露 `dayi_query` 等工具
-- 通过 bridge 调用 Python Core
-- 支持 npm 发布

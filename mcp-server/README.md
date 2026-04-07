@@ -1,144 +1,77 @@
 # dayi MCP server
 
-这是 Dayi MCP 的 Node/TypeScript 实现。
+Dayi 的 MCP Server（Node/TypeScript），当前正式版本建议使用：
 
-当前状态：
-- 已创建 TypeScript 目录结构
-- 已注册 `dayi_query` 与 `dayi_query_auto`（默认推荐）
-- 已桥接 Python Core（包内已内置 `python/dayi_core`）
-- 返回 `content + structuredContent`
+`@xiaoyibao_2025/dayi-mcp-server@0.1.7`
 
-运行前提：
-1. 当前仓库里的 Python Core 可用
-2. 本机存在 `python3`
-3. 在 `mcp-server/` 下安装 Node 依赖
+## 核心能力
 
-开发运行：
+- 工具：
+  - `dayi_query`
+  - `dayi_query_auto`（推荐，自动判定 medical/disease/doctor/symptom）
+- medical 输出增强：
+  - `record.sections.药品详情`：成分/性状/适应症/用法用量/规格/贮藏方法/有效期/执行标准
+  - `record.sections.注意事项`：不良反应/禁忌/药物相互作用/注意事项
+- 原始证据：
+  - `structuredContent.raw.detail_html`
+  - `structuredContent.raw.nuxt_script`
+  - `structuredContent.raw.search_payload`
+- 落盘：
+  - 参数 `save_path` 可选
+  - 不传时默认落盘 `/tmp/标题_YYYYMMDD.json`
+  - 返回 `structuredContent.saved_path`
 
-```bash
-cd mcp-server
-npm install
-npm run dev
-```
+## 客户端接入（stdio）
 
-构建：
-
-```bash
-cd mcp-server
-npm run build
-```
-
-使用 Inspector 调试：
+推荐统一命令（锁版本）：
 
 ```bash
-cd mcp-server
-npx @modelcontextprotocol/inspector npx tsx src/index.ts
+npx -y @xiaoyibao_2025/dayi-mcp-server@0.1.7
 ```
 
-当前工具：
-- `dayi_query`
-- `dayi_query_auto`（推荐，自动判定 medical/disease/doctor/symptom）
-
-说明：当类型为 `medical` 时，`content` 会返回更完整的字段文本（overview/sections/attributes），`structuredContent` 仍保留完整 JSON。
-并且 `structuredContent.raw` 会包含原始 `detail_html` / `nuxt_script` / `search_payload`，可直接用于后续 RAG 入库。
-其中 `record.sections` 会重点输出：
-- 药品详情：`成分`、`性状`、`适应症`、`用法用量`、`规格`、`贮藏方法`、`有效期`、`执行标准`
-- 注意事项：`不良反应`、`禁忌`、`药物相互作用`、`注意事项`
-
-工具参数支持可选 `save_path`，可将完整结构化结果落盘为本地 `.json` 文件。
-若不传 `save_path`，默认会落盘到 `/tmp`，文件名格式：`标题_YYYYMMDD.json`，并在结果里返回：
-- `structuredContent.saved_path`
-
-关于 `/tmp`：
-- Linux/macOS 通常可直接用 `/tmp`
-- macOS 实际路径常映射到 `/private/tmp`
-- 建议以 `structuredContent.saved_path` 为准
-
-默认不暴露分类型工具，避免客户端一次性并发调用 4 个工具。
-如需开启分类型工具（`dayi_query_medical`/`dayi_query_doctor`/`dayi_query_disease`/`dayi_query_symptom`），可设置：
-
-```bash
-DAYI_EXPOSE_TYPED_TOOLS=1 npx -y @xiaoyibao_2025/dayi-mcp-server
-```
-
-默认运行（安装后可直接执行）：
-
-```bash
-npm install -g @xiaoyibao_2025/dayi-mcp-server
-dayi-mcp
-```
-
-发布包内已包含 Python Core（`python/dayi_core`），默认不需要额外设置 `PYTHONPATH`。
-若需要自定义 Python 可执行文件：
-
-```bash
-DAYI_PYTHON_BIN=/path/to/python3 dayi-mcp
-```
-
-也可以把它注册到 `.mcp.json` 的配置里，使用默认的 stdio transport：
-
-```json
-{
-  "servers": [
-    {
-      "name": "dayi-mcp-server",
-      "path": "node_modules/@xiaoyibao_2025/dayi-mcp-server/dist/index.js",
-      "transport": "stdio"
-    }
-  ]
-}
-```
-
-发布前检查：
-
-```bash
-cd mcp-server
-npm pack --dry-run
-```
-
-发布（当前 scope 可用）：
-
-```bash
-cd mcp-server
-npm login
-npm publish --access public
-```
-
-说明：
-- 当前 `npm whoami` 是 `xiaoyibao_2025`，你拥有这个 scope 的发布权限
-
-后续要做：
-1. 补充错误码与更细的 tool 描述
-2. （可选）提供精简版 `.mcp.json` 供 Cherry/UV 等客户端直接导入，内容只要保留 server 启动即可，示例参考（建议锁版本）：
-
-```json
-{
-  "version": "1.0.0",
-  "servers": [
-    {
-      "name": "dayi-mcp-server",
-      "command": "npx",
-      "args": ["-y", "@xiaoyibao_2025/dayi-mcp-server@0.1.6"],
-      "cwd": "/Users/qinxiaoqiang/Downloads/dayi/dayi-search-mcp/mcp-server",
-      "transport": "stdio"
-    }
-  ]
-}
-```
-
-这样客户端会自动通过 `tools/list` 识别 `dayi_query` 等能力，不需要手动配置 `tools` 节点。
-
-按照你给的格式，可以再补一个 `mcpServers` 节点的示例：
+### Cherry Studio / OpenClaw / Claude Code / Codex（mcpServers 格式）
 
 ```json
 {
   "mcpServers": {
     "dayi-mcp-server": {
       "command": "npx",
-      "args": ["-y", "@xiaoyibao_2025/dayi-mcp-server@0.1.6"],
-      "cwd": "/Users/qinxiaoqiang/Downloads/dayi/dayi-search-mcp/mcp-server",
+      "args": ["-y", "@xiaoyibao_2025/dayi-mcp-server@0.1.7"],
       "transport": "stdio"
     }
   }
 }
+```
+
+### FastGPT
+
+新增 MCP stdio server，命令填写：
+
+```bash
+npx -y @xiaoyibao_2025/dayi-mcp-server@0.1.7
+```
+
+工具自动通过 `tools/list` 发现。
+
+## 开发
+
+```bash
+cd mcp-server
+npm install
+npm run sync:python
+npm run build
+```
+
+Inspector 调试：
+
+```bash
+npx @modelcontextprotocol/inspector npx tsx src/index.ts
+```
+
+## 发布
+
+```bash
+cd mcp-server
+npm pack --dry-run
+npm publish --access public
 ```
